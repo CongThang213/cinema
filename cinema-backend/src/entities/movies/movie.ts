@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('movies')
+@Entity()
 export class Movie {
   @PrimaryGeneratedColumn()
   id: number;
@@ -8,18 +8,14 @@ export class Movie {
   @Column()
   title: string;
 
-  @Column('text')
+  @Column()
   description: string;
 
   @Column()
-  duration: number; // in minutes
-
-  @Column({ type: 'date' })
-  release_date: Date;
+  duration: number; // Thời lượng phim (phút)
 
   @Column()
-  poster_url: string;
+  releaseDate: Date;
 
-  @Column()
-  genre: string;
+
 }
