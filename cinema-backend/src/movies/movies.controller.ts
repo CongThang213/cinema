@@ -12,7 +12,7 @@ export class MoviesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number): Promise<Movie> {
+  findOne(@Param('id') id: number): Promise<Movie | null> {
     return this.moviesService.findOne(id);
   }
 
@@ -22,7 +22,7 @@ export class MoviesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() movie: Movie): Promise<Movie> {
+  update(@Param('id') id: number, @Body() movie: Movie): Promise<Movie | null> {
     return this.moviesService.update(id, movie);
   }
 

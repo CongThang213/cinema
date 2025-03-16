@@ -12,7 +12,7 @@ export class TicketsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number): Promise<Ticket> {
+  findOne(@Param('id') id: number): Promise<Ticket | null> {
     return this.ticketsService.findOne(id);
   }
 
@@ -22,7 +22,7 @@ export class TicketsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() ticket: Ticket): Promise<Ticket> {
+  update(@Param('id') id: number, @Body() ticket: Ticket): Promise<Ticket | null> {
     return this.ticketsService.update(id, ticket);
   }
 

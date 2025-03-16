@@ -14,7 +14,7 @@ export class ShowtimesService {
     return this.showtimesRepository.find();
   }
 
-  findOne(id: number): Promise<Showtime> {
+  findOne(id: number): Promise<Showtime | null> {
     return this.showtimesRepository.findOne({ where: { id } });
   }
 
@@ -22,7 +22,7 @@ export class ShowtimesService {
     return this.showtimesRepository.save(showtime);
   }
 
-  async update(id: number, showtime: Showtime): Promise<Showtime> {
+  async update(id: number, showtime: Showtime): Promise<Showtime | null> {
     await this.showtimesRepository.update(id, showtime);
     return this.findOne(id);
   }

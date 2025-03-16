@@ -14,7 +14,7 @@ export class TicketsService {
     return this.ticketsRepository.find();
   }
 
-  findOne(id: number): Promise<Ticket> {
+  findOne(id: number): Promise<Ticket | null> {
     return this.ticketsRepository.findOne({ where: { id } });
   }
 
@@ -22,7 +22,7 @@ export class TicketsService {
     return this.ticketsRepository.save(ticket);
   }
 
-  async update(id: number, ticket: Ticket): Promise<Ticket> {
+  async update(id: number, ticket: Ticket): Promise<Ticket | null> {
     await this.ticketsRepository.update(id, ticket);
     return this.findOne(id);
   }

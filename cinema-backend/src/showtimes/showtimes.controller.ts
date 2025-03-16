@@ -12,7 +12,7 @@ export class ShowtimesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number): Promise<Showtime> {
+  findOne(@Param('id') id: number): Promise<Showtime | null> {
     return this.showtimesService.findOne(id);
   }
 
@@ -22,7 +22,7 @@ export class ShowtimesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() showtime: Showtime): Promise<Showtime> {
+  update(@Param('id') id: number, @Body() showtime: Showtime): Promise<Showtime | null> {
     return this.showtimesService.update(id, showtime);
   }
 

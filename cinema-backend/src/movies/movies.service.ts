@@ -14,7 +14,7 @@ export class MoviesService {
     return this.moviesRepository.find();
   }
 
-  findOne(id: number): Promise<Movie> {
+  findOne(id: number): Promise<Movie | null> {
     return this.moviesRepository.findOne({ where: { id } });
   }
 
@@ -22,7 +22,7 @@ export class MoviesService {
     return this.moviesRepository.save(movie);
   }
 
-  async update(id: number, movie: Movie): Promise<Movie> {
+  async update(id: number, movie: Movie): Promise<Movie | null> {
     await this.moviesRepository.update(id, movie);
     return this.findOne(id);
   }
