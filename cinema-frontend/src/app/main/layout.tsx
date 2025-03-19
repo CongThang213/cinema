@@ -1,14 +1,8 @@
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-    return (
-      <html lang="vi">
-        <body>
-          <header>
-            <nav>Navbar</nav>
-          </header>
-          <main>{children}</main>
-          <footer>Footer</footer>
-        </body>
-      </html>
-    );
-  }
-  
+export default function MainLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="main-container">
+      <h2>Main Section</h2>
+      {children}
+    </div>
+  );
+}

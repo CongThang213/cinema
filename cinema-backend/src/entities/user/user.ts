@@ -1,13 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Ticket } from '../tickets/tickets';
 
-@Entity('users')
+@Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
   @Column({ unique: true })
@@ -19,12 +18,6 @@ export class User {
   @Column({ default: 'user' })
   role: string;
 
-  @CreateDateColumn()
-  created_at: Date;
-
-  @BeforeInsert()
-  async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  
+  @OneToMany(() => Ticket, (ticket) => ticket.user, { cascade: true })
+  tickets: Ticket[];
 }

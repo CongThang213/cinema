@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Showtime } from '../showtimes/showtime';
 
 @Entity()
 export class Movie {
@@ -9,13 +10,11 @@ export class Movie {
   title: string;
 
   @Column()
-  description: string;
+  genre: string;
 
   @Column()
   duration: number; // Thời lượng phim (phút)
 
-  @Column()
-  releaseDate: Date;
-
-
+  @OneToMany(() => Showtime, (showtime) => showtime.movie, { cascade: true })
+  showtimes: Showtime[];
 }

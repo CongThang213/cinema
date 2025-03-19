@@ -5,7 +5,9 @@ import { Request } from 'express';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService, private reflector: Reflector) {}
+  constructor(private jwtService: JwtService,
+              private reflector: Reflector) 
+  {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest() as Request & { user?: any };

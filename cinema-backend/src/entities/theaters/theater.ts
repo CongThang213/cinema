@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Cinema } from '../cinema/cinema';
+import { Showtime } from '../showtimes/showtime';
 
 @Entity()
 export class Theater {
@@ -9,8 +11,11 @@ export class Theater {
   name: string;
 
   @Column()
-  location: string;
+  capacity: number; // Số ghế
 
-  @Column()
-  totalSeats: number;
+  @ManyToOne(() => Cinema, (cinema) => cinema.theaters, { onDelete: 'CASCADE' })
+  cinema: Cinema;
+
+  @OneToMany(() => Showtime, (showtime) => showtime.theater, { cascade: true })
+  showtimes: Showtime[];
 }

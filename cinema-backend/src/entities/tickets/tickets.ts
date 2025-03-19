@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { User } from '../user/user';
 import { Showtime } from '../showtimes/showtime';
 
 @Entity()
@@ -7,11 +8,11 @@ export class Ticket {
   id: number;
 
   @Column()
-  customerName: string;
-
-  @Column()
   seatNumber: string;
 
-  @ManyToOne(() => Showtime)
+  @ManyToOne(() => User, (user) => user.tickets, { onDelete: 'CASCADE' })
+  user: User;
+
+  @ManyToOne(() => Showtime, (showtime) => showtime.tickets, { onDelete: 'CASCADE' })
   showtime: Showtime;
 }

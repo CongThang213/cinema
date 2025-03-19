@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Theater } from '../theaters/theater';
 
-@Entity('cinemas')
+@Entity()
 export class Cinema {
   @PrimaryGeneratedColumn()
   id: number;
@@ -11,6 +12,6 @@ export class Cinema {
   @Column()
   location: string;
 
-  @Column()
-  total_rooms: number;
+  @OneToMany(() => Theater, (theater) => theater.cinema, { cascade: true })
+  theaters: Theater[];
 }

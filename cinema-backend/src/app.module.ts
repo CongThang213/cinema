@@ -18,6 +18,12 @@ import { TicketsModule } from './tickets/tickets.module';
 
 import { OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { OmitType } from '@nestjs/swagger';
+
+import { CacheModule } from '@nestjs/cache-manager';
+
+import { MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
   imports: [AuthModule, UserModule, DatabaseModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
@@ -43,4 +49,23 @@ import { DataSource } from 'typeorm';
   ],
 })
 
-export class AppModule {}
+
+@Module({
+  imports: [
+    CacheModule.register({
+      isGlobal: true,
+      store: 'ioredis',
+      host: 'localhost',
+      port: 6379, // Cổng mặc định của Redis
+    }),
+  ],
+})
+
+@Module({})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*'); // Áp dụng middleware cho tất cả route
+  }
+}
+
+// export class AppModule {}
