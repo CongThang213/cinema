@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, Min } from 'class-validator';
 
 export class CreateTheaterDto {
   @IsNotEmpty()
@@ -6,10 +6,6 @@ export class CreateTheaterDto {
   name: string;
 
   @IsNotEmpty()
-  @IsString()
-  location: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  totalScreens: number;
+  @IsInt()
+  capacity: number;
 }

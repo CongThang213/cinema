@@ -11,7 +11,7 @@ async function bootstrap() {
 
   // Cấu hình CORS cho frontend
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4000', // Đọc từ biến môi trường
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Đọc từ biến môi trường
     credentials: true, // Hỗ trợ cookies và headers bảo mật
   });
 

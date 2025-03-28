@@ -1,7 +1,10 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user/user';
+import { CreateUserDto } from 'src/dto/create-user.dto';
+import { UpdateUserDto } from 'src/dto/update-user.dto';
+import { UserRole } from '../entities/user/user';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -11,22 +14,19 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  // ✅ Tạo user (Mã hóa password, kiểm tra email trùng lặp)
-  async createUser(userData: Partial<User>, defaultRole: string = 'user'): Promise<User> {
-    if (!userData.password) {
-      throw new Error('Password không được để trống!');
-    }
-
-    const existingUser = await this.userRepository.findOne({ where: { email: userData.email } });
+  async createUser(userData: CreateUserDto, defaultRole: UserRole = UserRole.USER): Promise<User> {
+    const existingUser = await this.userRepository.findOne({ 
+      where: [{ email: userData.email }, { username: userData.username }]
+    });
+    
     if (existingUser) {
-      throw new ConflictException('Email đã tồn tại!');
+        throw new ConflictException('Email hoặc username đã tồn tại!');
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const newUser = this.userRepository.create({
-      username: userData.username,
-      email: userData.email,
+      ...userData,
       password: hashedPassword,
       role: userData.role || defaultRole,
     });
@@ -34,12 +34,14 @@ export class UserService {
     return await this.userRepository.save(newUser);
   }
 
-  // ✅ Lấy tất cả user
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
   async getAllUsers(): Promise<User[]> {
     return this.userRepository.find({ relations: ['tickets'] });
   }
 
-  // ✅ Lấy user theo ID
   async getUserById(id: number): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id }, relations: ['tickets'] });
     if (!user) {
@@ -48,22 +50,8 @@ export class UserService {
     return user;
   }
 
-  // ✅ Tìm user theo Username
-  async findByUsername(username: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { username } });
-  }
-
-  // ✅ Tìm user theo Email
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
-  }
-
-  // ✅ Cập nhật user
-  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+  async updateUser(id: number, userData: UpdateUserDto): Promise<User> {
     const user = await this.getUserById(id);
-    if (!user) {
-      throw new NotFoundException(`User với ID ${id} không tồn tại`);
-    }
 
     if (userData.password) {
       userData.password = await bcrypt.hash(userData.password, 10);
@@ -73,12 +61,16 @@ export class UserService {
     return this.getUserById(id);
   }
 
-  // ✅ Xóa user
   async deleteUser(id: number): Promise<void> {
     const user = await this.getUserById(id);
-    if (!user) {
-      throw new NotFoundException(`User với ID ${id} không tồn tại`);
-    }
     await this.userRepository.delete(id);
+  }
+
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.findByEmail(email);
+    if (user && (await user.comparePassword(password))) {
+      return user;
+    }
+    return null;
   }
 }

@@ -1,42 +1,39 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from '../entities/user/user';
+import { CreateUserDto } from 'src/dto/create-user.dto';
+import { UpdateUserDto } from 'src/dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { UserRole } from 'src/entities/user/user';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // Create a new user
-  @Post()
-  createUser(@Body() userData: Partial<User>) {
-    return this.userService.createUser(userData);
+  @Post('register')
+  async register(@Body() userData: CreateUserDto) {
+    return this.userService.createUser(userData, UserRole.USER);
   }
 
-  // Get all users
+  @Post('login')
+  async login(@Body() body) {
+    const { email, password } = body;
+    if (!email || !password) {
+      throw new BadRequestException('Email và password là bắt buộc');
+    }
+    const user = await this.userService.validateUser(email, password);
+    if (!user) {
+      throw new BadRequestException('Email hoặc mật khẩu không chính xác');
+    }
+    return { message: '✅ Đăng nhập thành công', user };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get()
   getAllUsers() {
     return this.userService.getAllUsers();
-  }
-
-  // Get user by ID
-  @Get(':id')
-  getUserById(@Param('id') id: number) {
-    return this.userService.getUserById(id);
-  }
-
-  // Update a user
-  @Put(':id')
-  updateUser(@Param('id') id: number, @Body() userData: Partial<User>) {
-    return this.userService.updateUser(id, userData);
-  }
-
-  // Delete a user
-  @Delete(':id')
-  deleteUser(@Param('id') id: number) {
-    return this.userService.deleteUser(id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -44,14 +41,25 @@ export class UserController {
   getProfile(@Request() req) {
     return req.user;
   }
-}
 
-@UseGuards(JwtAuthGuard, RolesGuard)  // Bảo vệ tất cả API trong controller
-export class UsersController {
-    
-    @Get()
-    @Roles('admin')  // Chỉ admin mới gọi được API này
-    getAllUsers() {
-        return "Danh sách người dùng";
-    }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get(':id')
+  getUserById(@Param('id') id: string) {
+    return this.userService.getUserById(Number(id));
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Put(':id')
+  updateUser(@Param('id') id: string, @Body() userData: UpdateUserDto) {
+    return this.userService.updateUser(Number(id), userData);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser(Number(id));
+  }
 }

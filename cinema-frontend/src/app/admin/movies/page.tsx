@@ -6,30 +6,27 @@ import MoviesAdmin from "./MoviesAdmin";
 import api from "@/services/api";
 
 export default function MoviesPage() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const res = await api.get("/auth/me"); // API lấy thông tin người dùng
-        if (res.data.role === "admin") {
-          setIsAdmin(true);
-        } else {
-          router.push("/login"); // Chuyển hướng nếu không phải Admin
+        const res = await api.get("/auth/me");
+        setIsAdmin(res.data.role === "admin");
+        if (res.data.role !== "admin") {
+          router.replace("/login");
         }
       } catch (error) {
-        router.push("/login"); // Chuyển hướng nếu lỗi (chưa đăng nhập)
-      } finally {
-        setLoading(false);
+        console.error("Lỗi khi kiểm tra quyền:", error);
+        router.replace("/login");
       }
     };
 
     checkAdmin();
   }, [router]);
 
-  if (loading) return <p>Đang kiểm tra quyền truy cập...</p>;
+  if (isAdmin === null) return <p className="text-center mt-4">Đang kiểm tra quyền truy cập...</p>;
 
   return isAdmin ? <MoviesAdmin /> : null;
 }

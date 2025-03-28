@@ -1,15 +1,4 @@
-import { IsOptional, IsString, IsNumber } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateTicketDto } from './create-ticket.dto';
 
-export class UpdateTicketDto {
-  @IsOptional()
-  @IsString()
-  customerName?: string;
-
-  @IsOptional()
-  @IsString()
-  seatNumber?: string;
-
-  @IsOptional()
-  @IsNumber()
-  showtimeId?: number;
-}
+export class UpdateTicketDto extends PartialType(CreateTicketDto) {}

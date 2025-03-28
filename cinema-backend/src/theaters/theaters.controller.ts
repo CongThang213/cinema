@@ -8,6 +8,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { AdminGuard } from 'src/guards/admin.guard';
+import { Query } from '@nestjs/common';
 
 @Controller('admin/theaters')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,10 +16,11 @@ export class TheatersController {
   constructor(private readonly theatersService: TheatersService) {}
 
   @Get()
-  @Roles("admin", "user") // Người dùng đăng nhập có thể xem danh sách rạp
-  findAll() {
-    return this.theatersService.findAll();
+  @Roles("admin", "user")
+  findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('search') search?: string) {
+    return this.theatersService.findAll(page, limit, search);
   }
+  
 
   @Get(':id')
   @Roles("admin", "user")

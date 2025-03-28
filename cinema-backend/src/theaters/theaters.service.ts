@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Theater } from '../entities/theaters/theater';
 import { CreateTheaterDto } from 'src/dto/create-theater.dto';
 import { UpdateTheaterDto } from 'src/dto/update-theater.dto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class TheatersService {
@@ -12,9 +13,18 @@ export class TheatersService {
     private theatersRepository: Repository<Theater>,
   ) {}
 
-  findAll(): Promise<Theater[]> {
-    return this.theatersRepository.find();
+  findAll(page: number = 1, limit: number = 10, search?: string): Promise<{ data: Theater[], total: number }> { //pagination (phân trang) và filtering (lọc dữ liệu)
+    const query = this.theatersRepository.createQueryBuilder('theater');
+  
+    if (search) {
+      query.where("theater.name ILIKE :search", { search: `%${search}%` });
+    }
+  
+    query.skip((page - 1) * limit).take(limit);
+  
+    return query.getManyAndCount().then(([data, total]) => ({ data, total }));
   }
+  
 
   findOne(id: number): Promise<Theater | null> {
     return this.theatersRepository.findOne({ where: { id } });
@@ -31,6 +41,13 @@ export class TheatersService {
   }
   
   async remove(id: number): Promise<void> {
+    const theater = await this.theatersRepository.findOne({ where: { id } });
+  
+    if (!theater) {
+      throw new NotFoundException(`Theater with ID ${id} not found`);
+    }
+  
     await this.theatersRepository.delete(id);
   }
+  
 }

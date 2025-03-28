@@ -9,6 +9,8 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { IsAdminMiddleware } from 'src/common/middleware/is-admin.middleware';
 import { AuthMiddleware } from 'src/common/middleware/auth.middleware';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Theater]), AuthModule],
@@ -18,6 +20,10 @@ import { AuthMiddleware } from 'src/common/middleware/auth.middleware';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
   ],
   exports: [TypeOrmModule]

@@ -12,15 +12,17 @@ export class ShowtimesService {
   constructor(
     @InjectRepository(Showtime)
     private readonly showtimesRepository: Repository<Showtime>,
+
     @InjectRepository(Movie)
     private readonly moviesRepository: Repository<Movie>,
+
     @InjectRepository(Theater)
     private readonly theatersRepository: Repository<Theater>,
   ) {}
 
   // ✅ Lấy danh sách tất cả lịch chiếu
   async findAll(): Promise<Showtime[]> {
-    return await this.showtimesRepository.find({ relations: ['movie', 'theater'] });
+    return this.showtimesRepository.find({ relations: ['movie', 'theater'] });
   }
 
   // ✅ Lấy thông tin lịch chiếu theo ID
@@ -29,57 +31,63 @@ export class ShowtimesService {
       where: { id },
       relations: ['movie', 'theater'],
     });
+
     if (!showtime) {
       throw new NotFoundException(`Showtime with ID ${id} not found`);
     }
+
     return showtime;
   }
 
   // ✅ Thêm một lịch chiếu mới
   async create(createShowtimeDto: CreateShowtimeDto): Promise<Showtime> {
-    const movie = await this.moviesRepository.findOne({ where: { id: createShowtimeDto.movieId } });
-    if (!movie) throw new NotFoundException(`Movie with ID ${createShowtimeDto.movieId} not found`);
-  
-    const theater = await this.theatersRepository.findOne({ where: { id: createShowtimeDto.theaterId } });
-    if (!theater) throw new NotFoundException(`Theater with ID ${createShowtimeDto.theaterId} not found`);
-  
+    const { movieId, theaterId, startTime } = createShowtimeDto;
+
+    const movie = await this.moviesRepository.findOne({ where: { id: movieId } });
+    if (!movie) throw new NotFoundException(`Movie with ID ${movieId} not found`);
+
+    const theater = await this.theatersRepository.findOne({ where: { id: theaterId } });
+    if (!theater) throw new NotFoundException(`Theater with ID ${theaterId} not found`);
+
     const newShowtime = this.showtimesRepository.create({
-      startTime: new Date(createShowtimeDto.startTime), // Ép kiểu về Date
-      movie: movie,
-      theater: theater,
+      startTime: new Date(startTime),
+      movie,
+      theater,
     });
-  
-    return await this.showtimesRepository.save(newShowtime);
+
+    return this.showtimesRepository.save(newShowtime);
   }
-  
 
   // ✅ Cập nhật thông tin lịch chiếu
   async update(id: number, updateShowtimeDto: UpdateShowtimeDto): Promise<Showtime> {
     const showtime = await this.findOne(id);
 
-    if (updateShowtimeDto.movieId) {
-      const movie = await this.moviesRepository.findOne({ where: { id: updateShowtimeDto.movieId } });
-      if (!movie) throw new NotFoundException(`Movie with ID ${updateShowtimeDto.movieId} not found`);
+    const { movieId, theaterId, startTime } = updateShowtimeDto;
+
+    if (movieId) {
+      const movie = await this.moviesRepository.findOne({ where: { id: movieId } });
+      if (!movie) throw new NotFoundException(`Movie with ID ${movieId} not found`);
       showtime.movie = movie;
     }
 
-    if (updateShowtimeDto.theaterId) {
-      const theater = await this.theatersRepository.findOne({ where: { id: updateShowtimeDto.theaterId } });
-      if (!theater) throw new NotFoundException(`Theater with ID ${updateShowtimeDto.theaterId} not found`);
+    if (theaterId) {
+      const theater = await this.theatersRepository.findOne({ where: { id: theaterId } });
+      if (!theater) throw new NotFoundException(`Theater with ID ${theaterId} not found`);
       showtime.theater = theater;
     }
 
-    if (updateShowtimeDto.startTime) {
-      showtime.startTime = new Date(updateShowtimeDto.startTime);
+    if (startTime) {
+      showtime.startTime = new Date(startTime);
     }
-    
 
-    return await this.showtimesRepository.save(showtime);
+    return this.showtimesRepository.save(showtime);
   }
 
   // ✅ Xóa một lịch chiếu theo ID
   async remove(id: number): Promise<void> {
     const showtime = await this.findOne(id);
+    if (!showtime) throw new NotFoundException(`Showtime with ID ${id} not found`);
+
     await this.showtimesRepository.remove(showtime);
   }
 }

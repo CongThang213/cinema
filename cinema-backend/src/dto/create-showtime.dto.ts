@@ -1,12 +1,15 @@
-import { IsDateString, IsInt } from 'class-validator';
+import { IsNotEmpty, IsDateString, IsNumber } from 'class-validator';
 
 export class CreateShowtimeDto {
+  @IsNotEmpty()
   @IsDateString()
-  startTime: string;
+  startTime: Date;
 
-  @IsInt()
+  @IsNotEmpty()
+  @IsNumber()
   movieId: number;
 
-  @IsInt()
+  @IsNotEmpty()
+  @IsNumber()
   theaterId: number;
 }
