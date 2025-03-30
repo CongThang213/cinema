@@ -5,6 +5,7 @@ interface User {
   id: number;
   username: string;
   role: string;
+  isAdmin: boolean;
 }
 
 export function useAuth() {
@@ -13,12 +14,33 @@ export function useAuth() {
   const router = useRouter();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/auth/me"); // Gọi API lấy user
+        const cachedUser = localStorage.getItem("user");
+        if (cachedUser) {
+          setUser(JSON.parse(cachedUser));
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         if (res.ok) {
           const data = await res.json();
-          setUser(data);
+          const userData = { ...data, isAdmin: data.role === "admin" };
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData)); // Cache user
+        } else {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -26,6 +48,7 @@ export function useAuth() {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, []);
 

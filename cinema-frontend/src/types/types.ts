@@ -17,7 +17,7 @@ export enum UserRole {
   // 🎟 Showtime - Suất chiếu phim
   export interface Showtime {
     id: number;
-    startTime: string; // Giờ chiếu (ISO format)
+    startTime: Date; // Giờ chiếu (ISO format)
   }
   
   // 🏢 Theater - Rạp chiếu phim

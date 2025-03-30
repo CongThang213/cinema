@@ -1,51 +1,44 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { createShowtime, updateShowtime } from "@/services/api";
+import { CircularProgress, TextField, Button } from "@mui/material";
+import { Showtime } from "@/types/types";
 
 interface ShowtimeFormProps {
-  editingShowtime?: { id: number; startTime: string | Date } | null;
-  onShowtimeSaved: () => void;
+  editingShowtime?: Showtime | null;
+  onShowtimeSaved: (showtime: Showtime) => void;
 }
 
-const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
-  editingShowtime,
-  onShowtimeSaved,
-}) => {
-  const [startTime, setStartTime] = useState("");
+export default function ShowtimeForm({ editingShowtime, onShowtimeSaved }: ShowtimeFormProps) {
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (editingShowtime) {
-      setStartTime(
-        typeof editingShowtime.startTime === "string"
-          ? new Date(editingShowtime.startTime).toISOString().slice(0, 16) // Chuyển string thành Date
-          : editingShowtime.startTime.toISOString().slice(0, 16) // Nếu đã là Date thì giữ nguyên
-      );
-    } else {
-      setStartTime("");
-    }
+    setStartTime(editingShowtime ? new Date(editingShowtime.startTime) : null);
   }, [editingShowtime]);
-  
 
   const handleSubmit = async () => {
-    if (!startTime) {
-      alert("⛔ Vui lòng nhập thời gian chiếu!");
-      return;
-    }
+    if (!startTime) return alert("⛔ Vui lòng nhập thời gian chiếu!");
 
+    setLoading(true);
     try {
-      const data = { startTime: new Date(startTime) };
+      const data = { startTime: startTime.toISOString() }; // Gửi dạng ISO
 
       if (editingShowtime) {
         await updateShowtime(editingShowtime.id, data);
         alert("✅ Cập nhật lịch chiếu thành công!");
+        onShowtimeSaved({ id: editingShowtime.id, startTime });
       } else {
-        await createShowtime(data);
+        const res = await createShowtime(data);
         alert("✅ Thêm lịch chiếu thành công!");
+        onShowtimeSaved({ id: res.data.id, startTime });
       }
-
-      onShowtimeSaved();
     } catch (error) {
       console.error("❌ Lỗi khi lưu lịch chiếu:", error);
       alert("Lỗi khi lưu lịch chiếu! Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,20 +47,25 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
       <h2 className="text-lg font-bold mb-2">
         {editingShowtime ? "Chỉnh sửa Lịch Chiếu" : "Thêm Lịch Chiếu"}
       </h2>
-      <input
+      <TextField
         type="datetime-local"
-        value={startTime}
-        onChange={(e) => setStartTime(e.target.value)}
-        className="w-full p-2 border rounded mb-2"
+        value={startTime ? startTime.toISOString().slice(0, 16) : ""}
+        onChange={(e) => setStartTime(new Date(e.target.value))}
+        fullWidth
+        margin="dense"
+        label="Thời gian chiếu"
+        InputLabelProps={{ shrink: true }}
       />
-      <button
+      <Button
         onClick={handleSubmit}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        variant="contained"
+        color="primary"
+        fullWidth
+        className="mt-2"
+        disabled={loading}
       >
-        {editingShowtime ? "Cập Nhật" : "Thêm Mới"}
-      </button>
+        {loading ? <CircularProgress size={24} /> : editingShowtime ? "Cập Nhật" : "Thêm Mới"}
+      </Button>
     </div>
   );
-};
-
-export default ShowtimeForm;
+}

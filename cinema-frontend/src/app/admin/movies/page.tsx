@@ -10,23 +10,22 @@ export default function MoviesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    (async () => {
       try {
         const res = await api.get("/auth/me");
         setIsAdmin(res.data.role === "admin");
-        if (res.data.role !== "admin") {
-          router.replace("/login");
-        }
       } catch (error) {
         console.error("Lỗi khi kiểm tra quyền:", error);
-        router.replace("/login");
+        setIsAdmin(false);
       }
-    };
+    })();
+  }, []);
 
-    checkAdmin();
-  }, [router]);
+  if (isAdmin === null) return <p>Đang kiểm tra quyền...</p>;
+  if (!isAdmin) {
+    router.replace("/login");
+    return null;
+  }
 
-  if (isAdmin === null) return <p className="text-center mt-4">Đang kiểm tra quyền truy cập...</p>;
-
-  return isAdmin ? <MoviesAdmin /> : null;
+  return <MoviesAdmin />;
 }

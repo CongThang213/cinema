@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress } from "@mui/material";
 import api from "@/services/api";
 import MovieForm from "./MovieForm";
 import { Movie } from "@/types/types";
 
 export default function MoviesAdmin() {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [editingMovie, setEditingMovie] = useState<Movie | undefined>(undefined);
+  const [editingMovie, setEditingMovie] = useState<Partial<Movie> | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,8 +32,8 @@ export default function MoviesAdmin() {
     if (!confirm("Bạn có chắc muốn xóa phim này?")) return;
     try {
       await api.delete(`/movies/${id}`);
+      setMovies((prev) => prev.filter((movie) => movie.id !== id)); // Xóa trực tiếp trên state
       alert("Xóa phim thành công!");
-      fetchMovies();
     } catch (error) {
       console.error("Lỗi khi xóa phim:", error);
       alert("Lỗi khi xóa phim! Vui lòng thử lại.");
@@ -41,50 +42,50 @@ export default function MoviesAdmin() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Quản lý Movies</h1>
+      <h1 className="text-2xl font-bold mb-4">Quản lý Movies</h1>
 
       <MovieForm
         editingMovie={editingMovie}
         onMovieSaved={() => {
           fetchMovies();
-          setEditingMovie(undefined); // Reset form
+          setEditingMovie(undefined);
         }}
       />
 
       {loading ? (
-        <p>Đang tải danh sách phim...</p>
+        <div className="flex justify-center mt-4">
+          <CircularProgress />
+        </div>
       ) : (
-        <table className="table-auto w-full mt-4 border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="p-2 border">ID</th>
-              <th className="p-2 border">Tên phim</th>
-              <th className="p-2 border">Đạo diễn</th>
-              <th className="p-2 border">Thể loại</th>
-              <th className="p-2 border">Thời lượng</th>
-              <th className="p-2 border">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {movies.map((movie) => (
-              <tr key={movie.id} className="border">
-                <td className="p-2 border">{movie.id}</td>
-                <td className="p-2 border">{movie.title}</td>
-                <td className="p-2 border">{movie.director}</td>
-                <td className="p-2 border">{movie.genre}</td>
-                <td className="p-2 border">{movie.duration} phút</td>
-                <td className="p-2 border flex gap-2">
-                  <button onClick={() => setEditingMovie(movie)} className="bg-blue-500 text-white px-2 py-1 rounded">
-                    Sửa
-                  </button>
-                  <button onClick={() => handleDelete(movie.id)} className="bg-red-500 text-white px-2 py-1 rounded">
-                    Xóa
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <TableContainer component={Paper} className="mt-4">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Tên phim</TableCell>
+                <TableCell>Đạo diễn</TableCell>
+                <TableCell>Thể loại</TableCell>
+                <TableCell>Thời lượng</TableCell>
+                <TableCell>Thao tác</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {movies.map((movie) => (
+                <TableRow key={movie.id}>
+                  <TableCell>{movie.id}</TableCell>
+                  <TableCell>{movie.title}</TableCell>
+                  <TableCell>{movie.director}</TableCell>
+                  <TableCell>{movie.genre}</TableCell>
+                  <TableCell>{movie.duration} phút</TableCell>
+                  <TableCell>
+                    <Button onClick={() => setEditingMovie(movie)} color="primary">Sửa</Button>
+                    <Button onClick={() => handleDelete(movie.id)} color="error">Xóa</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </div>
   );

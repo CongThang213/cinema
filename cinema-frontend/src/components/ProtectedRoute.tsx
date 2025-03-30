@@ -1,29 +1,38 @@
-import { useContext, useEffect } from "react";
-import { useRouter } from "next/router";
-import { UserContext } from "../context/UserContext";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/hooks/useAuth"; 
+import CircularProgress from "@mui/material/CircularProgress";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: string[]; // Thêm prop allowedRoles
+  allowedRoles?: string[];
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const userContext = useContext(UserContext);
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!userContext || !userContext.user) {
-      router.push("/login");
-    } else if (allowedRoles && !allowedRoles.includes(userContext.user.role)) {
-      router.push("/unauthorized"); // Điều hướng nếu không có quyền
+    if (!loading) {
+      if (!user) {
+        router.replace("/login");
+      } else if (allowedRoles && !allowedRoles.includes(user.role)) {
+        router.replace("/unauthorized");
+      }
     }
-  }, [userContext, router, allowedRoles]);
+  }, [user, loading, router, allowedRoles]);
 
-  if (!userContext || !userContext.user) {
-    return null;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <CircularProgress />
+      </div>
+    );
   }
 
-  return <>{children}</>;
+  return user ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

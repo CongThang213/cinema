@@ -1,58 +1,53 @@
-import { useEffect, useState } from "react";
-import { getTickets, deleteTicket } from "@/services/api";
-import TicketForm from "./TicketForm";
+"use client";
 
-interface Ticket {
-  id: number;
-  price: number;
-}
+import { useState } from "react";
+import { useTickets } from "@/app/hooks/useTickets";
+import TicketForm from "./TicketForm";
+import { Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 
 export default function TicketsAdmin() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
-
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const fetchTickets = async () => {
-    try {
-      const response = await getTickets();
-      setTickets(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("❌ Lỗi khi tải danh sách vé:", error);
-      setTickets([]);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm("⚠ Bạn có chắc chắn muốn xóa vé này?")) {
-      try {
-        await deleteTicket(id);
-        setTickets((prev) => prev.filter(ticket => ticket.id !== id));
-      } catch (error) {
-        console.error("❌ Lỗi khi xóa vé:", error);
-      }
-    }
-  };
+  const { tickets, isLoading, fetchTickets, handleDelete } = useTickets();
+  const [editingTicket, setEditingTicket] = useState<{ id: number; price: number } | null>(null);
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Quản lý Vé</h1>
+      <h1 className="text-2xl font-bold mb-4">🎟 Quản lý Vé</h1>
 
-      <TicketForm editingTicket={editingTicket ?? undefined} onSaved={fetchTickets} />
+      <TicketForm editingTicket={editingTicket} onSaved={fetchTickets} />
 
-      <ul className="mt-4">
-        {tickets.map((ticket) => (
-          <li key={ticket.id} className="flex justify-between p-2 border">
-            {ticket.price} VNĐ
-            <div>
-              <button className="text-blue-500 mr-2" onClick={() => setEditingTicket(ticket)}>✏ Chỉnh sửa</button>
-              <button className="text-red-500" onClick={() => handleDelete(ticket.id)}>❌ Xóa</button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {isLoading ? (
+        <div className="flex justify-center mt-4">
+          <CircularProgress />
+        </div>
+      ) : (
+        <TableContainer component={Paper} className="mt-4">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><b>ID</b></TableCell>
+                <TableCell><b>Giá vé</b></TableCell>
+                <TableCell align="right"><b>Hành động</b></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tickets.map((ticket) => (
+                <TableRow key={ticket.id}>
+                  <TableCell>{ticket.id}</TableCell>
+                  <TableCell>{ticket.price.toLocaleString()} VNĐ</TableCell>
+                  <TableCell align="right">
+                    <Button variant="contained" color="primary" size="small" onClick={() => setEditingTicket(ticket)}>
+                      ✏ Sửa
+                    </Button>
+                    <Button variant="contained" color="error" size="small" onClick={() => handleDelete(ticket.id)} className="ml-2">
+                      ❌ Xóa
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getShowtimes, deleteShowtime } from "@/services/api";
 import ShowtimeForm from "./ShowtimeForm";
 import { Showtime } from "@/types/types";
@@ -10,24 +10,18 @@ export default function ShowtimesAdmin() {
   const [editingShowtime, setEditingShowtime] = useState<Showtime | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchShowtimes();
-  }, []);
-
-  const fetchShowtimes = async () => {
+  // 🔄 Fetch danh sách suất chiếu
+  const fetchShowtimes = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getShowtimes();
-      if (res && res.data) {
-        // Chuyển đổi startTime từ string => Date
-        const formattedShowtimes = res.data.map((showtime: any) => ({
-          ...showtime,
-          startTime: new Date(showtime.startTime),
-        }));
-  
-        setShowtimes(formattedShowtimes);
-      } else {
-        console.error("❌ API trả về dữ liệu không hợp lệ:", res);
+      if (res?.data) {
+        setShowtimes(
+          res.data.map((s: any) => ({
+            id: s.id,
+            startTime: new Date(s.startTime), // Chuyển string → Date ngay từ đầu
+          }))
+        );
       }
     } catch (error) {
       console.error("❌ Lỗi lấy lịch chiếu:", error);
@@ -35,15 +29,19 @@ export default function ShowtimesAdmin() {
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, []);
 
+  useEffect(() => {
+    fetchShowtimes();
+  }, [fetchShowtimes]);
+
+  // 🗑 Xóa suất chiếu
   const handleDelete = async (id: number) => {
     if (!confirm("Bạn có chắc muốn xóa lịch chiếu này?")) return;
     try {
       await deleteShowtime(id);
+      setShowtimes((prev) => prev.filter((s) => s.id !== id));
       alert("✅ Xóa lịch chiếu thành công!");
-      fetchShowtimes();
     } catch (error) {
       console.error("❌ Lỗi khi xóa lịch chiếu:", error);
       alert("Lỗi khi xóa lịch chiếu! Vui lòng thử lại.");
@@ -54,7 +52,16 @@ export default function ShowtimesAdmin() {
     <div>
       <ShowtimeForm
         editingShowtime={editingShowtime}
-        onShowtimeSaved={fetchShowtimes}
+        onShowtimeSaved={(newShowtime) => {
+          setShowtimes((prev) =>
+            prev.some((s) => s.id === newShowtime.id)
+              ? prev.map((s) =>
+                  s.id === newShowtime.id ? { ...newShowtime } : s
+                )
+              : [...prev, newShowtime]
+          );
+          setEditingShowtime(null);
+        }}
       />
 
       {loading ? (
@@ -73,7 +80,7 @@ export default function ShowtimesAdmin() {
               <tr key={showtime.id} className="border">
                 <td className="p-2 border">{showtime.id}</td>
                 <td className="p-2 border">
-                  {new Date(showtime.startTime).toLocaleString()}
+                  {showtime.startTime.toLocaleString()} {/* Hiển thị đúng format */}
                 </td>
                 <td className="p-2 border flex gap-2">
                   <button

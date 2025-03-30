@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
@@ -22,7 +24,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const decodedUser: DecodedUser = jwtDecode(token);
+        const decodedUser = jwtDecode<DecodedUser>(token); // ✅ Cung cấp kiểu rõ ràng
         
         // Kiểm tra token có hết hạn chưa
         if (decodedUser.exp * 1000 < Date.now()) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createTicket, updateTicket } from "@/services/api";
+import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 
 interface TicketFormProps {
   editingTicket?: { id: number; price: number } | null;
@@ -10,14 +11,19 @@ interface TicketFormProps {
 
 const TicketForm: React.FC<TicketFormProps> = ({ editingTicket, onSaved }) => {
   const [price, setPrice] = useState<number>(0);
+  const [error, setError] = useState<string>("");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setPrice(editingTicket?.price ?? 0); // Sử dụng giá trị mặc định là 0
+    if (editingTicket) {
+      setPrice(editingTicket.price);
+      setOpen(true);
+    }
   }, [editingTicket]);
 
   const handleSubmit = async () => {
-    if (price <= 0) {
-      alert("⛔ Giá vé phải lớn hơn 0!");
+    if (price < 10000 || price > 500000) {
+      setError("⚠ Giá vé phải từ 10,000 đến 500,000 VNĐ!");
       return;
     }
 
@@ -27,26 +33,41 @@ const TicketForm: React.FC<TicketFormProps> = ({ editingTicket, onSaved }) => {
       } else {
         await createTicket({ price });
       }
-      onSaved(); // Cập nhật danh sách vé
+      onSaved();
+      setOpen(false);
     } catch (error) {
       console.error("❌ Lỗi khi lưu vé:", error);
     }
   };
 
   return (
-    <div className="p-4 border rounded bg-white shadow-md">
-      <h2 className="text-lg font-bold mb-2">{editingTicket ? "Chỉnh sửa Vé" : "Thêm Vé"}</h2>
-      <input
-        type="number"
-        value={price}
-        onChange={(e) => setPrice(Number(e.target.value))}
-        placeholder="Nhập giá vé"
-        className="w-full p-2 border rounded mb-2"
-      />
-      <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        {editingTicket ? "Cập Nhật" : "Thêm Mới"}
-      </button>
-    </div>
+    <>
+      <Button variant="contained" color="success" onClick={() => setOpen(true)}>
+        ➕ Thêm Vé
+      </Button>
+
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>{editingTicket ? "✏ Chỉnh sửa Vé" : "➕ Thêm Vé"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(Number(e.target.value))}
+            label="Giá vé (VNĐ)"
+            fullWidth
+            error={!!error}
+            helperText={error}
+            className="mt-2"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="secondary">❌ Hủy</Button>
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            {editingTicket ? "💾 Cập Nhật" : "✔ Thêm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

@@ -5,18 +5,10 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // 🔹 Quan trọng! Để gửi cookie khi request
 });
 
-// ✅ Hàm lấy token từ localStorage và gắn vào request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// ✅ Hàm xử lý lỗi API chung (trả về lỗi rõ ràng hơn)
+// ✅ Hàm xử lý lỗi API chung
 const handleRequest = async (request: Promise<any>) => {
   try {
     const response = await request;
@@ -32,9 +24,9 @@ export const loginUser = (email: string, password: string) =>
   handleRequest(api.post("/auth/login", { email, password }));
 
 export const registerUser = (data: { username: string; email: string; password: string }) =>
-  handleRequest(api.post("/users/register", data));
+  handleRequest(api.post("/auth/register", data));
 
-export const getProfile = () => handleRequest(api.get("/users/profile"));
+export const getProfile = () => handleRequest(api.get("/auth/me")); 
 
 // ✅ API Movies
 export const getMovies = () => handleRequest(api.get("/movies"));
@@ -55,7 +47,9 @@ export const updateTheater = (id: number, data: any) => handleRequest(api.put(`/
 export const deleteTheater = (id: number) => handleRequest(api.delete(`/theaters/${id}`));
 
 // ✅ API Users
-export const getUsers = (page = 1, limit = 10, search = "") => api.get(`/users?page=${page}&limit=${limit}&search=${search}`); // ✅ Lấy danh sách Users có hỗ trợ phân trang & tìm kiếm
+export const getUsers = (page = 1, limit = 10, search = "") =>
+  api.get(`/users?page=${page}&limit=${limit}&search=${search}`);
+
 export const createUser = (data: any) => handleRequest(api.post("/users", data));
 export const updateUser = (id: number, data: any) => handleRequest(api.put(`/users/${id}`, data));
 export const deleteUser = (id: number) => handleRequest(api.delete(`/users/${id}`));
