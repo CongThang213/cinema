@@ -7,8 +7,6 @@
   🏆 Ma Công Thắng (Nhóm trưởng)
   🎨 Trần Lê Hạnh Phúc
   📊 Trần Tuấn Khôi
-  🔍 Trần Thy Minh
-  🎭 Nguyễn Lê Nam Hải
 
 🛠️ Công nghệ sử dụng:
 💻 Backend: NestJS, Node.js, TypeScript, PostgreSQL, TypeORM, JWT
